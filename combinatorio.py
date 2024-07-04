@@ -1,4 +1,6 @@
 import sys
+import networkx as nx
+import matplotlib.pyplot as plt
 from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QVBoxLayout, QLabel, QLineEdit, QWidget, QMessageBox, QInputDialog
 
 class Grafo:
@@ -45,7 +47,7 @@ class MainWindow(QMainWindow):
         super().__init__()
 
         self.setWindowTitle("Grafo Interface")
-        self.setGeometry(100, 100, 400, 300)
+        self.setGeometry(100, 100, 600, 400)
 
         self.vertices_input = QLineEdit()
         self.vertices_input.setPlaceholderText("Número de vértices")
@@ -84,6 +86,7 @@ class MainWindow(QMainWindow):
             try:
                 vertices = int(vertices_text)
                 self.grafo = Grafo(vertices)
+                self.desenhar(vertices)  # Desenhar o grafo inicial com os vértices
             except ValueError:
                 QMessageBox.warning(self, "Erro", "Número de vértices inválido.")
                 return
@@ -94,6 +97,7 @@ class MainWindow(QMainWindow):
         if ok1 and ok2:
             self.grafo.adicionar_aresta(u, v)
             self.output_label.setText(f"Aresta adicionada entre {u} e {v}")
+            self.desenhar(self.grafo.vertices)  # Redesenhar o grafo com a nova aresta
 
     def count_components(self):
         if self.grafo:
@@ -119,10 +123,25 @@ class MainWindow(QMainWindow):
         text, ok = QInputDialog.getInt(self, "Entrada de Vértice", message)
         return text, ok
 
+    def desenhar(self, vertices):
+        g = nx.Graph()
+        for i in range(vertices):
+            g.add_node(i)
+        for u in range(vertices):
+            for v in self.grafo.grafo[u]:
+                g.add_edge(u, v)
+        
+        plt.clf()  # Limpar a figura antes de desenhar novamente
+        nx.draw(g, with_labels=True, font_weight='bold')
+        plt.draw()
+        plt.pause(0.001)  # Pausa para atualizar o gráfico
+
 def main():
     app = QApplication(sys.argv)
     window = MainWindow()
     window.show()
+    plt.ion()  # Ativar modo interativo do Matplotlib
+    plt.show()
     sys.exit(app.exec_())
 
 if __name__ == "__main__":
